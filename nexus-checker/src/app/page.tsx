@@ -1,6 +1,24 @@
+"use client";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
 export default function Home() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/appointments")
+      .then((res) => res.json())
+      .then((data) => {
+        setData(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching appointment data:", error);
+        setLoading(false);
+      });
+  }, []);
+
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
@@ -12,16 +30,32 @@ export default function Home() {
           height={38}
           priority
         />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+
+        <h1 className="text-2xl font-bold">Nexus Appointment Availability</h1>
+
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <div className="mt-4 w-full max-w-2xl">
+            {Object.keys(data).map((state) => (
+              <div key={state} className="mb-4">
+                <h2 className="text-xl font-semibold">{state}</h2>
+                <ul className="list-disc pl-4">
+                  {data[state].length > 0 ? (
+                    data[state].map((location: any, index: number) => (
+                      <li key={index}>
+                        {location.location} - Next Available:{" "}
+                        <strong>{new Date(location.nextAvailable).toLocaleString()}</strong>
+                      </li>
+                    ))
+                  ) : (
+                    <li>No available slots</li>
+                  )}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="flex gap-4 items-center flex-col sm:flex-row">
           <a
@@ -49,6 +83,7 @@ export default function Home() {
           </a>
         </div>
       </main>
+
       <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
         <a
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
@@ -99,3 +134,4 @@ export default function Home() {
     </div>
   );
 }
+
